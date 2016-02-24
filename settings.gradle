@@ -1,0 +1,4 @@
+include ':greedo-layout'
+include ':greedo-layout-sample'
+
+rootProject.name = 'greedo-layout-root'
