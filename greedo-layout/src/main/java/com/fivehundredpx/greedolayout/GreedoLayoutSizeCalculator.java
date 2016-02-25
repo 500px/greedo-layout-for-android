@@ -7,7 +7,7 @@ import java.util.List;
  * Created by Julian Villella on 15-08-24.
  */
 
-public class AspectRatioLayoutSizeCalculator {
+public class GreedoLayoutSizeCalculator {
     public interface SizeCalculatorDelegate {
         double aspectRatioForIndex(int index);
     }
@@ -24,7 +24,7 @@ public class AspectRatioLayoutSizeCalculator {
     private List<Integer> mFirstChildPositionForRow;
     private List<Integer> mRowForChildPosition;
 
-    public AspectRatioLayoutSizeCalculator(SizeCalculatorDelegate sizeCalculatorDelegate) {
+    public GreedoLayoutSizeCalculator(SizeCalculatorDelegate sizeCalculatorDelegate) {
         mSizeCalculatorDelegate = sizeCalculatorDelegate;
 
         mSizeForChildAtPosition = new ArrayList<>();

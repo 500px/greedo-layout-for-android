@@ -6,14 +6,14 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.fivehundredpx.greedolayout.AspectRatioLayoutSizeCalculator.SizeCalculatorDelegate;
+import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorDelegate;
 
 /**
  * Created by Julian Villella on 15-08-24.
  */
 
-public class AspectRatioLayoutManager extends RecyclerView.LayoutManager {
-    private static final String TAG = AspectRatioLayoutManager.class.getSimpleName();
+public class GreedoLayoutManager extends RecyclerView.LayoutManager {
+    private static final String TAG = GreedoLayoutManager.class.getSimpleName();
 
     private enum Direction { NONE, UP, DOWN }
 
@@ -26,10 +26,10 @@ public class AspectRatioLayoutManager extends RecyclerView.LayoutManager {
     // Flag to force current scroll offsets to be ignored on re-layout
     private boolean mForceClearOffsets;
 
-    private AspectRatioLayoutSizeCalculator mSizeCalculator;
+    private GreedoLayoutSizeCalculator mSizeCalculator;
 
-    public AspectRatioLayoutManager(SizeCalculatorDelegate sizeCalculatorDelegate) {
-        mSizeCalculator = new AspectRatioLayoutSizeCalculator(sizeCalculatorDelegate);
+    public GreedoLayoutManager(SizeCalculatorDelegate sizeCalculatorDelegate) {
+        mSizeCalculator = new GreedoLayoutSizeCalculator(sizeCalculatorDelegate);
     }
 
     public void setMaxRowHeight(int maxRowHeight) {
@@ -267,7 +267,7 @@ public class AspectRatioLayoutManager extends RecyclerView.LayoutManager {
         return mFirstVisiblePosition;
     }
 
-    public AspectRatioLayoutSizeCalculator getSizeCalculator() {
+    public GreedoLayoutSizeCalculator getSizeCalculator() {
         return mSizeCalculator;
     }
 }

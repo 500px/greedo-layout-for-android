@@ -7,7 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.fivehundredpx.greedolayout.AspectRatioLayoutSizeCalculator.SizeCalculatorDelegate;
+import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorDelegate;
 import com.squareup.picasso.Picasso;
 
 /**
