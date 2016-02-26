@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
 
 android {
     compileSdkVersion 23
@@ -8,7 +9,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
     }
     buildTypes {
         release {
@@ -23,3 +24,13 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
 }
+
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.groupId = 'com.fivehundredpx'
+        pom.artifactId = 'greedo-layout'
+        pom.version = android.defaultConfig.versionName
+        repository(url: "file:./releases/")
+    }
+}
+
