@@ -1,4 +1,4 @@
-The photos in the sample application are licensed under the [Creative Commons Attribution License 3.0](https://creativecommons.org/licenses/by/3.0/) and are listed below.
+The photos in the sample application are licensed under the Creative Commons and are listed below.
 * [Vijay Nund Morning Puja by Joey L](https://500px.com/photo/60386152/vijay-nund-morning-puja-by-joey-l-)
 * [Touch Me by Natta Summerky](https://500px.com/photo/111579505/touch-me-by-natta-summerky)
 * [Hungry Horse Reservoir Glacier National Park Mt by Rishad Daroowala](https://500px.com/photo/134780233/hungry-horse-reservoir-glacier-national-park-mt-by-rishad-daroowala)
