@@ -25,7 +25,4 @@ public class Constants {
             R.drawable.photo_16,
             R.drawable.photo_17
     };
-
-    /** Number of images we will show in the sample grid */
-    public static final int IMAGE_COUNT = 100;
 }
