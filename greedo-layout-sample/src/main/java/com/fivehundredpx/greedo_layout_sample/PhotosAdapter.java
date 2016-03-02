@@ -1,19 +1,13 @@
 package com.fivehundredpx.greedo_layout_sample;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.DrawableRes;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorDelegate;
 import com.squareup.picasso.Picasso;
-
-import java.io.IOException;
 
 /**
  * Created by Julian Villella on 16-02-24.
@@ -62,6 +56,7 @@ public class PhotosAdapter extends RecyclerView.Adapter<PhotosAdapter.PhotoViewH
     public void onBindViewHolder(PhotoViewHolder holder, int position) {
         Picasso.with(mContext)
                 .load(mImageResIds[getLoopedIndex(position)])
+                .fit()
                 .into(holder.mImageView);
     }
 
