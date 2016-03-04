@@ -24,7 +24,7 @@ public class App extends Application {
         Picasso.setSingletonInstance(picasso);
     }
 
-    int calculateMemoryCacheSize() {
+    private int calculateMemoryCacheSize() {
         ActivityManager am = (ActivityManager)getSystemService(ACTIVITY_SERVICE);
         boolean largeHeap = (getApplicationInfo().flags & FLAG_LARGE_HEAP) != 0;
         int memoryClass = am.getMemoryClass();
@@ -32,7 +32,7 @@ public class App extends Application {
             memoryClass = am.getLargeMemoryClass();
         }
 
-        // Target ~33% of the available heap.
+        // Target ~50% of the available heap.
         return 1024 * 1024 * memoryClass / 2;
     }
 }
