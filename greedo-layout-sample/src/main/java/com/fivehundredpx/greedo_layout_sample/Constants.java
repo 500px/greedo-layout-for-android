@@ -3,7 +3,7 @@ package com.fivehundredpx.greedo_layout_sample;
 import android.support.annotation.DrawableRes;
 
 /**
- * Created by JVillella on 16-02-24.
+ * Created by Julian Villella on 16-02-24.
  */
 public class Constants {
     public static final @DrawableRes int[] IMAGES = new int[] {
@@ -25,7 +25,4 @@ public class Constants {
             R.drawable.photo_16,
             R.drawable.photo_17
     };
-
-    /** Number of images we will show in the sample grid */
-    public static final int IMAGE_COUNT = 100;
 }
