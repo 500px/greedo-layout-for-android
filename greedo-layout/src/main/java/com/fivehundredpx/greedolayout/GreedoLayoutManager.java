@@ -17,6 +17,9 @@ import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorD
 public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     private static final String TAG = GreedoLayoutManager.class.getSimpleName();
 
+    // Position of the header, which is the same value as its row. They can be used interchangeably
+    static final int HEADER_POSITION = 0;
+
     // TODO: Can we do away with this?
     private enum Direction { NONE, UP, DOWN }
 
@@ -29,6 +32,15 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     // Flag to force current scroll offsets to be ignored on re-layout
     private boolean mForceClearOffsets;
 
+    // Flag to indicate that the first item should be treated as a header. Note: The size calculator
+    //      doesn't factor in the existence of a header. That is left to the layout manager. This
+    //      also means, that the positions used to query the size calculator should be offset by -1
+    //      if we are using a header.
+    private boolean mIsFirstViewHeader;
+
+    // The size of the header view. This is calculated in {@code preFillGrid}.
+    private Size mHeaderViewSize;
+
     private GreedoLayoutSizeCalculator mSizeCalculator;
 
     public GreedoLayoutManager(SizeCalculatorDelegate sizeCalculatorDelegate) {
@@ -37,6 +49,20 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
 
     public void setMaxRowHeight(int maxRowHeight) {
         mSizeCalculator.setMaxRowHeight(maxRowHeight);
+    }
+
+    /**
+     * Set to true if you want the first view to act as a header. It's height will be obtained from
+     * the view itself, and the width will be equal to the content width.
+     *
+     * @param isFirstViewHeader true to have the first view act as a header.
+     */
+    public void setFirstViewAsHeader(boolean isFirstViewHeader) {
+        mIsFirstViewHeader = isFirstViewHeader;
+    }
+
+    public boolean isFirstViewHeader() {
+        return mIsFirstViewHeader;
     }
 
     // The initial call from the framework, received when we need to start laying out the initial
@@ -89,26 +115,25 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
      */
     private int preFillGrid(Direction direction, int dy, int emptyTop,
                             RecyclerView.Recycler recycler, RecyclerView.State state) {
-        int newFirstVisiblePosition = mSizeCalculator.getFirstChildPositionForRow(mFirstVisibleRow);
+        int newFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
 
-        // First, detach all existing views from the layout. detachView() is a lightweight
-        // operation that we can use to quickly reorder views without a full add/remove.
+        // First, detach all existing views from the layout. detachView() is a lightweight operation
+        //      that we can use to quickly reorder views without a full add/remove.
         SparseArray<View> viewCache = new SparseArray<>(getChildCount());
         int startLeftOffset = getPaddingLeft();
         int startTopOffset  = getPaddingTop() + emptyTop;
 
         if (getChildCount() != 0) {
             startTopOffset = getDecoratedTop(getChildAt(0));
-
             if (mFirstVisiblePosition != newFirstVisiblePosition) {
                 switch (direction) {
                     case UP: // new row above may be shown
-                        double previousTopRowHeight = mSizeCalculator.sizeForChildAtPosition(
+                        double previousTopRowHeight = sizeForChildAtPosition(
                                 mFirstVisiblePosition - 1).getHeight();
                         startTopOffset -= previousTopRowHeight;
                         break;
                     case DOWN: // row may have gone off screen
-                        double topRowHeight = mSizeCalculator.sizeForChildAtPosition(
+                        double topRowHeight = sizeForChildAtPosition(
                                 mFirstVisiblePosition).getHeight();
                         startTopOffset += topRowHeight;
                         break;
@@ -132,20 +157,31 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         mFirstVisiblePosition = newFirstVisiblePosition;
 
         // Next, supply the grid of items that are deemed visible. If they were previously there,
-        // they will simply be re-attached. New views that must be created are obtained from the
-        // Recycler and added.
+        //      they will simply be re-attached. New views that must be created are obtained from
+        //      the Recycler and added.
         int leftOffset = startLeftOffset;
         int topOffset  = startTopOffset;
         int nextPosition = mFirstVisiblePosition;
 
         while (nextPosition >= 0 && nextPosition < state.getItemCount()) {
-            // Layout this position
-            Size viewSize = mSizeCalculator.sizeForChildAtPosition(nextPosition);
+
+            boolean isViewCached = true;
+            View view = viewCache.get(nextPosition);
+            if (view == null) {
+                view = recycler.getViewForPosition(nextPosition);
+                isViewCached = false;
+            }
+
+            if (mIsFirstViewHeader && nextPosition == HEADER_POSITION) {
+                measureChildWithMargins(view, 0, 0);
+                mHeaderViewSize = new Size(view.getMeasuredWidth(), view.getMeasuredHeight());
+            }
 
             // Overflow to next row if we don't fit
+            Size viewSize = sizeForChildAtPosition(nextPosition);
             if ((leftOffset + viewSize.getWidth()) > getContentWidth()) {
                 leftOffset = startLeftOffset;
-                Size previousViewSize = mSizeCalculator.sizeForChildAtPosition(nextPosition - 1);
+                Size previousViewSize = sizeForChildAtPosition(nextPosition - 1);
                 topOffset += previousViewSize.getHeight();
             }
 
@@ -157,20 +193,17 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
             }
             if (isAtEndOfContent) break;
 
-            View view = viewCache.get(nextPosition);
-            if (view == null) {
-                view = recycler.getViewForPosition(nextPosition);
+            if (isViewCached) {
+                // Re-attach the cached view at its new index
+                attachView(view);
+                viewCache.remove(nextPosition);
+            } else {
                 addView(view);
-
                 measureChildWithMargins(view, 0, 0);
 
                 int right  = leftOffset + viewSize.getWidth();
                 int bottom = topOffset  + viewSize.getHeight();
                 layoutDecorated(view, leftOffset, topOffset, right, bottom);
-            } else {
-                // Re-attach the cached view at its new index
-                attachView(view);
-                viewCache.remove(nextPosition);
             }
 
             leftOffset += viewSize.getWidth();
@@ -201,6 +234,45 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         return getHeight() - getPaddingTop() - getPaddingBottom();
     }
 
+    //region SizeCalculator proxy methods
+    private Size sizeForChildAtPosition(int position) {
+        if (mIsFirstViewHeader && position == HEADER_POSITION) {
+            return mHeaderViewSize;
+        } else if (mIsFirstViewHeader && position > HEADER_POSITION) {
+            // Decrement position to factor in existence of header
+            position -= 1;
+        }
+
+        return mSizeCalculator.sizeForChildAtPosition(position);
+    }
+
+    private int rowForChildPosition(int position) {
+        int offset = 0;
+        if (mIsFirstViewHeader && position == HEADER_POSITION) {
+            return HEADER_POSITION;
+        } else if (mIsFirstViewHeader && position > HEADER_POSITION) {
+            // Decrement position to factor in existence of header
+            position -= 1;
+            offset = 1;
+        }
+
+        return mSizeCalculator.getRowForChildPosition(position) + offset;
+    }
+
+    private int firstChildPositionForRow(int row) {
+        int offset = 0;
+        if (mIsFirstViewHeader && row == HEADER_POSITION) {
+            return HEADER_POSITION;
+        } else if (mIsFirstViewHeader && row > HEADER_POSITION) {
+            // Decrement row to factor in existence of header
+            row -= 1;
+            offset = 1;
+        }
+
+        return mSizeCalculator.getFirstChildPositionForRow(row) + offset;
+    }
+    //endregion
+
     @Override
     public void scrollToPosition(int position) {
         if (position >= getItemCount()) {
@@ -208,9 +280,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
             return;
         }
 
-        mForceClearOffsets = true; // Ignore current scroll offset, snap to top-left
-        mFirstVisibleRow = mSizeCalculator.getRowForChildPosition(position);
-        mFirstVisiblePosition = mSizeCalculator.getFirstChildPositionForRow(mFirstVisibleRow);
+        mForceClearOffsets = true; // Ignore current scroll offset
+        mFirstVisibleRow = rowForChildPosition(position);
+        mFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
         requestLayout();
     }
 
