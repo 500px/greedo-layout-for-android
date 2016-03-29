@@ -263,8 +263,32 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         );
     }
 
+    /**
+     * Returns the adapter position of the first visible view.
+     *
+     * @return The adapter position of the first visible view or {@link RecyclerView#NO_POSITION} if
+     * there aren't any visible items.
+     */
     public int findFirstVisibleItemPosition() {
-        return mFirstVisiblePosition;
+        if (getItemCount() == 0) {
+            return RecyclerView.NO_POSITION;
+        } else {
+            return mFirstVisiblePosition;
+        }
+    }
+
+    /**
+     * Returns the adapter position of the last visible view.
+     *
+     * @return The adapter position of the last visible view or {@link RecyclerView#NO_POSITION} if
+     * there aren't any visible items.
+     */
+    public int findLastVisibleItemPosition() {
+        if (getItemCount() == 0) {
+            return RecyclerView.NO_POSITION;
+        } else {
+            return mFirstVisiblePosition + getChildCount();
+        }
     }
 
     public GreedoLayoutSizeCalculator getSizeCalculator() {
