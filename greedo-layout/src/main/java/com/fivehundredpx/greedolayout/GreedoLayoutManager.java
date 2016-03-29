@@ -32,6 +32,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     // Flag to force current scroll offsets to be ignored on re-layout
     private boolean mForceClearOffsets;
 
+    // Scroll position offset that will be applied on the next layout pass
+    private int mPendingScrollPositionOffset = 0;
+
     // Flag to indicate that the first item should be treated as a header. Note: The size calculator
     //      doesn't factor in the existence of a header. That is left to the layout manager. This
     //      also means, that the positions used to query the size calculator should be offset by -1
@@ -78,24 +81,24 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         mSizeCalculator.setContentWidth(getContentWidth());
         mSizeCalculator.reset();
 
-        int childTop;
+        int initialTopOffset = 0;
         if (getChildCount() == 0) { // First or empty layout
             mFirstVisiblePosition = 0;
             mFirstVisibleRow = 0;
-            childTop = 0;
         } else { // Adapter data set changes
             // Keep the existing initial position, and save off the current scrolled offset.
             final View topChild = getChildAt(0);
             if (mForceClearOffsets) {
-                childTop = 0;
+                initialTopOffset = 0;
                 mForceClearOffsets = false;
             } else {
-                childTop = getDecoratedTop(topChild);
+                initialTopOffset = getDecoratedTop(topChild);
             }
         }
 
         detachAndScrapAttachedViews(recycler);
-        preFillGrid(Direction.NONE, 0, childTop, recycler, state);
+        preFillGrid(Direction.NONE, 0, initialTopOffset, recycler, state);
+        mPendingScrollPositionOffset = 0;
     }
 
     @Override
@@ -160,7 +163,7 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         //      they will simply be re-attached. New views that must be created are obtained from
         //      the Recycler and added.
         int leftOffset = startLeftOffset;
-        int topOffset  = startTopOffset;
+        int topOffset  = startTopOffset + mPendingScrollPositionOffset;
         int nextPosition = mFirstVisiblePosition;
 
         while (nextPosition >= 0 && nextPosition < state.getItemCount()) {
@@ -284,6 +287,11 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         mFirstVisibleRow = rowForChildPosition(position);
         mFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
         requestLayout();
+    }
+
+    public void scrollToPositionWithOffset(int position, int offset) {
+        mPendingScrollPositionOffset = offset;
+        scrollToPosition(position);
     }
 
     @Override
