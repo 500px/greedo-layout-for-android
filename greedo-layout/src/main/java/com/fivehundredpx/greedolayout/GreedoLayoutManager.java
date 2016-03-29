@@ -276,6 +276,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     }
     //endregion
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void scrollToPosition(int position) {
         if (position >= getItemCount()) {
@@ -289,6 +292,16 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         requestLayout();
     }
 
+    /**
+     * Scroll to the specified adapter position with the given offset. Note that the scroll position
+     * change will not be reflected until the next layout call. If you are just trying to make a
+     * position visible, use {@link #scrollToPosition(int)}.
+     *
+     * @param position Index (starting at 0) of the reference item.
+     * @param offset   The distance (in pixels) between the start edge of the item view and
+     *                 start edge of the RecyclerView.
+     * @see #scrollToPosition(int)
+     */
     public void scrollToPositionWithOffset(int position, int offset) {
         mPendingScrollPositionOffset = offset;
         scrollToPosition(position);
