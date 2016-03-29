@@ -12,9 +12,12 @@ import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorD
  * Created by Julian Villella on 15-08-24.
  */
 
+// TODO: When measuring children we can likely pass getContentWidth() as their widthUsed
+
 public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     private static final String TAG = GreedoLayoutManager.class.getSimpleName();
 
+    // TODO: Can we do away with this?
     private enum Direction { NONE, UP, DOWN }
 
     // First (top-left) position visible at any point
@@ -225,23 +228,35 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         final View topLeftView = getChildAt(0);
         final View bottomRightView = getChildAt(getChildCount() - 1);
         int pixelsFilled = getContentHeight();
+        // TODO: Split into methods, or a switch case?
         if (dy > 0) {
-            boolean lastChildIsVisible = mFirstVisiblePosition + getChildCount() >= getItemCount();
-            if (lastChildIsVisible && pixelsFilled <= getContentHeight()) { // is at end of content
-                pixelsFilled = Math.max(getDecoratedBottom(getChildAt(getChildCount() - 1)) - getContentHeight(), 0);
-            } else if (getDecoratedBottom(topLeftView) - dy <= 0) { // top row went offscreen
+            boolean isLastChildVisible = (mFirstVisiblePosition + getChildCount()) >= getItemCount();
+
+            if (isLastChildVisible) {
+                // Is at end of content
+                pixelsFilled = Math.max(getDecoratedBottom(bottomRightView) - getContentHeight(), 0);
+
+            } else if (getDecoratedBottom(topLeftView) - dy <= 0) {
+                // Top row went offscreen
                 mFirstVisibleRow++;
                 pixelsFilled = preFillGrid(Direction.DOWN, Math.abs(dy), 0, recycler, state);
-            } else if (getDecoratedBottom(bottomRightView) - dy < getContentHeight()) { // new bottom row came on screen
+
+            } else if (getDecoratedBottom(bottomRightView) - dy < getContentHeight()) {
+                // New bottom row came on screen
                 pixelsFilled = preFillGrid(Direction.DOWN, Math.abs(dy), 0, recycler, state);
             }
         } else {
-            if (mFirstVisibleRow == 0 && getDecoratedTop(topLeftView) - dy >= 0) { // is scrolled to top
+            if (mFirstVisibleRow == 0 && getDecoratedTop(topLeftView) - dy >= 0) {
+                // Is scrolled to top
                 pixelsFilled = -getDecoratedTop(topLeftView);
-            } else if (getDecoratedTop(topLeftView) - dy >= 0) { // new top row came on screen
+
+            } else if (getDecoratedTop(topLeftView) - dy >= 0) {
+                // New top row came on screen
                 mFirstVisibleRow--;
                 pixelsFilled = preFillGrid(Direction.UP, Math.abs(dy), 0, recycler, state);
-            } else if (getDecoratedTop(bottomRightView) - dy > getContentHeight()) { // bottom row went offscreen
+
+            } else if (getDecoratedTop(bottomRightView) - dy > getContentHeight()) {
+                // Bottom row went offscreen
                 pixelsFilled = preFillGrid(Direction.UP, Math.abs(dy), 0, recycler, state);
             }
         }
@@ -249,9 +264,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         final int scrolled = Math.abs(dy) > pixelsFilled ? (int)Math.signum(dy) * pixelsFilled : dy;
         offsetChildrenVertical(-scrolled);
 
-        // Return value determines if a boundary has been reached (for edge effects and flings).
-        // If returned value does not match original delta (passed in), RecyclerView will draw
-        // an edge effect.
+        // Return value determines if a boundary has been reached (for edge effects and flings). If
+        //      returned value does not match original delta (passed in), RecyclerView will draw an
+        //      edge effect.
         return scrolled;
     }
 
