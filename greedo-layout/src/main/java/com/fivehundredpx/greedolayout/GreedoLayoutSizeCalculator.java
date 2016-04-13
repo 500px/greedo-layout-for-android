@@ -18,6 +18,8 @@ public class GreedoLayoutSizeCalculator {
     private static final int INVALID_CONTENT_WIDTH = -1;
     private int mContentWidth = INVALID_CONTENT_WIDTH;
 
+    private boolean mFixedHeight = false;
+
     private SizeCalculatorDelegate mSizeCalculatorDelegate;
 
     private List<Size> mSizeForChildAtPosition;
@@ -42,6 +44,13 @@ public class GreedoLayoutSizeCalculator {
     public void setMaxRowHeight(int maxRowHeight) {
         if (mMaxRowHeight != maxRowHeight) {
             mMaxRowHeight = maxRowHeight;
+            reset();
+        }
+    }
+
+    public void setFixedHeight(boolean fixedHeight) {
+        if (mFixedHeight != fixedHeight) {
+            mFixedHeight = fixedHeight;
             reset();
         }
     }

@@ -36,9 +36,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     private int mPendingScrollPositionOffset = 0;
 
     // Flag to indicate that the first item should be treated as a header. Note: The size calculator
-    //      doesn't factor in the existence of a header. That is left to the layout manager. This
-    //      also means, that the positions used to query the size calculator should be offset by -1
-    //      if we are using a header.
+    // doesn't factor in the existence of a header. That is left to the layout manager. This also
+    // means, that the positions used to query the size calculator should be offset by -1 if we are
+    // using a header.
     private boolean mIsFirstViewHeader;
 
     // The size of the header view. This is calculated in {@code preFillGrid}.
@@ -50,6 +50,22 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         mSizeCalculator = new GreedoLayoutSizeCalculator(sizeCalculatorDelegate);
     }
 
+    /**
+     * Set to true if you want all rows to be of the same height. The height will be equal to the
+     * value passed to {@code setMaxRowHeight(int)}.
+     *
+     * @param fixedHeight true to ensure all rows will have the same height.
+     */
+    public void setFixedHeight(boolean fixedHeight) {
+        mSizeCalculator.setFixedHeight(fixedHeight);
+    }
+
+    /**
+     * The max height a row could be. If fixed height is enabled via {@code setFixedHeight(boolean)}
+     * the given max row height value will be used as the fixed row height.
+     *
+     * @param maxRowHeight Max height a row can grow to.
+     */
     public void setMaxRowHeight(int maxRowHeight) {
         mSizeCalculator.setMaxRowHeight(maxRowHeight);
     }
