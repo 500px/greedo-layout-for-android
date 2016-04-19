@@ -59,7 +59,7 @@ public class GreedoLayoutSizeCalculator {
         }
     }
 
-    Size sizeForChildAtPosition(int position) {
+    public Size sizeForChildAtPosition(int position) {
         if (position >= mSizeForChildAtPosition.size()) {
             computeChildSizesUpToPosition(position);
         }
@@ -67,11 +67,25 @@ public class GreedoLayoutSizeCalculator {
         return mSizeForChildAtPosition.get(position);
     }
 
-    int getFirstChildPositionForRow(int row) {
+    public int getFirstChildPositionForRow(int row) {
         if (row >= mFirstChildPositionForRow.size()) {
             computeFirstChildPositionsUpToRow(row);
         }
         return mFirstChildPositionForRow.get(row);
+    }
+
+    public int getRowForChildPosition(int position) {
+        if (position >= mRowForChildPosition.size()) {
+            computeChildSizesUpToPosition(position);
+        }
+
+        return mRowForChildPosition.get(position);
+    }
+
+    public void reset() {
+        mSizeForChildAtPosition.clear();
+        mFirstChildPositionForRow.clear();
+        mRowForChildPosition.clear();
     }
 
     private void computeFirstChildPositionsUpToRow(int row) {
@@ -82,21 +96,7 @@ public class GreedoLayoutSizeCalculator {
         }
     }
 
-    int getRowForChildPosition(int position) {
-        if (position >= mRowForChildPosition.size()) {
-            computeChildSizesUpToPosition(position);
-        }
-
-        return mRowForChildPosition.get(position);
-    }
-
-    void reset() {
-        mSizeForChildAtPosition.clear();
-        mFirstChildPositionForRow.clear();
-        mRowForChildPosition.clear();
-    }
-
-    public void computeChildSizesUpToPosition(int lastPosition) {
+    private void computeChildSizesUpToPosition(int lastPosition) {
         if (mContentWidth == INVALID_CONTENT_WIDTH) {
             throw new RuntimeException("Invalid content width. Did you forget to set it?");
         }

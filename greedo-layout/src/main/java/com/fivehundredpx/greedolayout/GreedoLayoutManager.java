@@ -370,7 +370,7 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
             }
         }
 
-        final int scrolled = Math.abs(dy) > pixelsFilled ? (int)Math.signum(dy) * pixelsFilled : dy;
+        final int scrolled = Math.abs(dy) > pixelsFilled ? (int) Math.signum(dy) * pixelsFilled : dy;
         offsetChildrenVertical(-scrolled);
 
         // Return value determines if a boundary has been reached (for edge effects and flings). If
