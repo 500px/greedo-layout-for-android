@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Greedo Layout</string>
+    <string name="enable_fixed_height">Enable Fixed Height</string>
+    <string name="disable_fixed_height">Disable Fixed Height</string>
 </resources>

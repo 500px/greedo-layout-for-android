@@ -18,6 +18,12 @@ public class GreedoLayoutSizeCalculator {
     private static final int INVALID_CONTENT_WIDTH = -1;
     private int mContentWidth = INVALID_CONTENT_WIDTH;
 
+    // When in fixed height mode and the item's width is less than this percentage, don't try to
+    // fit the item, overflow it to the next row and grow the existing items.
+    private static final double VALID_ITEM_SLACK_THRESHOLD = 2.0 / 3.0;
+
+    private boolean mIsFixedHeight = false;
+
     private SizeCalculatorDelegate mSizeCalculatorDelegate;
 
     private List<Size> mSizeForChildAtPosition;
@@ -46,7 +52,14 @@ public class GreedoLayoutSizeCalculator {
         }
     }
 
-    Size sizeForChildAtPosition(int position) {
+    public void setFixedHeight(boolean fixedHeight) {
+        if (mIsFixedHeight != fixedHeight) {
+            mIsFixedHeight = fixedHeight;
+            reset();
+        }
+    }
+
+    public Size sizeForChildAtPosition(int position) {
         if (position >= mSizeForChildAtPosition.size()) {
             computeChildSizesUpToPosition(position);
         }
@@ -54,22 +67,14 @@ public class GreedoLayoutSizeCalculator {
         return mSizeForChildAtPosition.get(position);
     }
 
-    int getFirstChildPositionForRow(int row) {
+    public int getFirstChildPositionForRow(int row) {
         if (row >= mFirstChildPositionForRow.size()) {
             computeFirstChildPositionsUpToRow(row);
         }
         return mFirstChildPositionForRow.get(row);
     }
 
-    private void computeFirstChildPositionsUpToRow(int row) {
-        // TODO: Rewrite this? Looks dangerous but in reality should be fine. I'd like something
-        // less alarming though.
-        while (row >= mFirstChildPositionForRow.size()) {
-            computeChildSizesUpToPosition(mSizeForChildAtPosition.size() + 1);
-        }
-    }
-
-    int getRowForChildPosition(int position) {
+    public int getRowForChildPosition(int position) {
         if (position >= mRowForChildPosition.size()) {
             computeChildSizesUpToPosition(position);
         }
@@ -77,13 +82,21 @@ public class GreedoLayoutSizeCalculator {
         return mRowForChildPosition.get(position);
     }
 
-    void reset() {
+    public void reset() {
         mSizeForChildAtPosition.clear();
         mFirstChildPositionForRow.clear();
         mRowForChildPosition.clear();
     }
 
-    public void computeChildSizesUpToPosition(int lastPosition) {
+    private void computeFirstChildPositionsUpToRow(int row) {
+        // TODO: Rewrite this? Looks dangerous but in reality should be fine. I'd like something
+        //       less alarming though.
+        while (row >= mFirstChildPositionForRow.size()) {
+            computeChildSizesUpToPosition(mSizeForChildAtPosition.size() + 1);
+        }
+    }
+
+    private void computeChildSizesUpToPosition(int lastPosition) {
         if (mContentWidth == INVALID_CONTENT_WIDTH) {
             throw new RuntimeException("Invalid content width. Did you forget to set it?");
         }
@@ -96,34 +109,97 @@ public class GreedoLayoutSizeCalculator {
         int row = mRowForChildPosition.size() > 0
                 ? mRowForChildPosition.get(mRowForChildPosition.size() - 1) + 1 : 0;
 
-        double rowAspectRatio = 0.0;
-        int currentRowHeight = Integer.MAX_VALUE;
-        List<Double> aspectRatiosForRow = new ArrayList<>();
-        for (int pos = firstUncomputedChildPosition; pos < lastPosition || currentRowHeight > mMaxRowHeight; pos++) {
-            double posAspectRatio = mSizeCalculatorDelegate.aspectRatioForIndex(pos);
-            rowAspectRatio += posAspectRatio;
-            aspectRatiosForRow.add(posAspectRatio);
+        double currentRowAspectRatio = 0.0;
+        List<Double> itemAspectRatios = new ArrayList<>();
+        int currentRowHeight = mIsFixedHeight ? mMaxRowHeight : Integer.MAX_VALUE;
 
-            currentRowHeight = (int)Math.ceil(mContentWidth / rowAspectRatio);
-            if (currentRowHeight <= mMaxRowHeight) { // Row is full
-                int rowChildCount = aspectRatiosForRow.size();
+        int currentRowWidth = 0;
+        int pos = firstUncomputedChildPosition;
+        while (pos < lastPosition || (mIsFixedHeight ? currentRowWidth <= mContentWidth : currentRowHeight > mMaxRowHeight)) {
+            double posAspectRatio = mSizeCalculatorDelegate.aspectRatioForIndex(pos);
+            currentRowAspectRatio += posAspectRatio;
+            itemAspectRatios.add(posAspectRatio);
+
+            currentRowWidth = calculateWidth(currentRowHeight, currentRowAspectRatio);
+            if (!mIsFixedHeight) {
+                currentRowHeight = calculateHeight(mContentWidth, currentRowAspectRatio);
+            }
+
+            boolean isRowFull = mIsFixedHeight ? currentRowWidth > mContentWidth : currentRowHeight <= mMaxRowHeight;
+            if (isRowFull) {
+                int rowChildCount = itemAspectRatios.size();
                 mFirstChildPositionForRow.add(pos - rowChildCount + 1);
 
-                int availableSpace = mContentWidth;
-                for (Double aspectRatio : aspectRatiosForRow) {
-                    int scaledPhotoWidth = (int)Math.ceil(currentRowHeight * aspectRatio);
-                    scaledPhotoWidth = Math.min(availableSpace, scaledPhotoWidth);
+                int[] itemSlacks = new int[rowChildCount];
+                if (mIsFixedHeight) {
+                    itemSlacks = distributeRowSlack(currentRowWidth, rowChildCount, itemAspectRatios);
 
-                    mSizeForChildAtPosition.add(new Size(scaledPhotoWidth, currentRowHeight));
-                    mRowForChildPosition.add(row);
+                    if (!hasValidItemSlacks(itemSlacks, itemAspectRatios)) {
+                        int lastItemWidth = calculateWidth(currentRowHeight,
+                                itemAspectRatios.get(itemAspectRatios.size() - 1));
+                        currentRowWidth -= lastItemWidth;
+                        rowChildCount -= 1;
+                        itemAspectRatios.remove(itemAspectRatios.size() - 1);
 
-                    availableSpace = availableSpace - scaledPhotoWidth;
+                        itemSlacks = distributeRowSlack(currentRowWidth, rowChildCount, itemAspectRatios);
+                    }
                 }
 
-                aspectRatiosForRow.clear();
-                rowAspectRatio = 0.0;
+                int availableSpace = mContentWidth;
+                for (int i = 0; i < rowChildCount; i++) {
+                    int itemWidth = calculateWidth(currentRowHeight, itemAspectRatios.get(i)) - itemSlacks[i];
+                    itemWidth = Math.min(availableSpace, itemWidth);
+
+                    mSizeForChildAtPosition.add(new Size(itemWidth, currentRowHeight));
+                    mRowForChildPosition.add(row);
+
+                    availableSpace -= itemWidth;
+                }
+
+                itemAspectRatios.clear();
+                currentRowAspectRatio = 0.0;
                 row++;
             }
+
+            pos++;
         }
+    }
+
+    private int[] distributeRowSlack(int rowWidth, int rowChildCount, List<Double> itemAspectRatios) {
+        return distributeRowSlack(rowWidth - mContentWidth, rowWidth, rowChildCount, itemAspectRatios);
+    }
+
+    private int[] distributeRowSlack(int rowSlack, int rowWidth, int rowChildCount, List<Double> itemAspectRatios) {
+        int itemSlacks[] = new int[rowChildCount];
+
+        for (int i = 0; i < rowChildCount; i++) {
+            double itemWidth = mMaxRowHeight * itemAspectRatios.get(i);
+            itemSlacks[i] = (int) (rowSlack * (itemWidth / rowWidth));
+        }
+
+        return itemSlacks;
+    }
+
+    private boolean hasValidItemSlacks(int[] itemSlacks, List<Double> itemAspectRatios) {
+        for (int i = 0; i < itemSlacks.length; i++) {
+            int itemWidth = (int) (itemAspectRatios.get(i) * mMaxRowHeight);
+            if (!isValidItemSlack(itemSlacks[i], itemWidth)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isValidItemSlack(int itemSlack, int itemWidth) {
+        return (itemWidth - itemSlack) / (double) itemWidth > VALID_ITEM_SLACK_THRESHOLD;
+    }
+
+    private int calculateWidth(int itemHeight, double aspectRatio) {
+        return (int) Math.ceil(itemHeight * aspectRatio);
+    }
+
+    private int calculateHeight(int itemWidth, double aspectRatio) {
+        return (int) Math.ceil(itemWidth / aspectRatio);
     }
 }
