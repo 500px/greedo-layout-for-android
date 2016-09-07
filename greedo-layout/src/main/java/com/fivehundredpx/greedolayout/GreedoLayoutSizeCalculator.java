@@ -13,7 +13,7 @@ public class GreedoLayoutSizeCalculator {
     }
 
     private static final int DEFAULT_MAX_ROW_HEIGHT = 600;
-    private static int mMaxRowHeight = DEFAULT_MAX_ROW_HEIGHT;
+    private int mMaxRowHeight = DEFAULT_MAX_ROW_HEIGHT;
 
     private static final int INVALID_CONTENT_WIDTH = -1;
     private int mContentWidth = INVALID_CONTENT_WIDTH;
