@@ -94,6 +94,7 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
             return;
         }
 
+        mSizeCalculator.setItemsCount(getItemCount());
         mSizeCalculator.setContentWidth(getContentWidth());
         mSizeCalculator.reset();
 
