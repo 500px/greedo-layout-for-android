@@ -13,7 +13,7 @@ import com.squareup.picasso.Picasso;
  * Created by Julian Villella on 16-02-24.
  */
 public class PhotosAdapter extends RecyclerView.Adapter<PhotosAdapter.PhotoViewHolder> implements SizeCalculatorDelegate {
-    private static final int IMAGE_COUNT = 500; // number of images adapter will show
+    private static final int IMAGE_COUNT = 495; // number of images adapter will show
 
     private final int[] mImageResIds = Constants.IMAGES;
     private final double[] mImageAspectRatios = new double[Constants.IMAGES.length];

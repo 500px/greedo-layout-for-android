@@ -18,6 +18,8 @@ public class GreedoLayoutSizeCalculator {
     private static final int INVALID_CONTENT_WIDTH = -1;
     private int mContentWidth = INVALID_CONTENT_WIDTH;
 
+    private static final int INVALID_ITEMS_COUNT = -1;
+    private int mItemsCount = INVALID_ITEMS_COUNT;
     // When in fixed height mode and the item's width is less than this percentage, don't try to
     // fit the item, overflow it to the next row and grow the existing items.
     private static final double VALID_ITEM_SLACK_THRESHOLD = 2.0 / 3.0;
@@ -41,6 +43,13 @@ public class GreedoLayoutSizeCalculator {
     public void setContentWidth(int contentWidth) {
         if (mContentWidth != contentWidth) {
             mContentWidth = contentWidth;
+            reset();
+        }
+    }
+
+    public void setItemsCount(int itemsCount) {
+        if (mItemsCount != itemsCount) {
+            mItemsCount = itemsCount;
             reset();
         }
     }
@@ -105,6 +114,10 @@ public class GreedoLayoutSizeCalculator {
             throw new RuntimeException("Size calculator delegate is missing. Did you forget to set it?");
         }
 
+        if (mItemsCount == INVALID_ITEMS_COUNT) {
+            throw new RuntimeException("Invalid items count. Did you forget to set it?");
+        }
+
         int firstUncomputedChildPosition = mSizeForChildAtPosition.size();
         int row = mRowForChildPosition.size() > 0
                 ? mRowForChildPosition.get(mRowForChildPosition.size() - 1) + 1 : 0;
@@ -119,6 +132,13 @@ public class GreedoLayoutSizeCalculator {
             double posAspectRatio = mSizeCalculatorDelegate.aspectRatioForIndex(pos);
             currentRowAspectRatio += posAspectRatio;
             itemAspectRatios.add(posAspectRatio);
+
+            if (isLastListItem(pos) && itemAspectRatios.size() == 1) {
+                mSizeForChildAtPosition.add(new Size(mContentWidth, (int) Math.ceil(mContentWidth / posAspectRatio)));
+                mRowForChildPosition.add(row);
+                mFirstChildPositionForRow.add(pos);
+                return;
+            }
 
             currentRowWidth = calculateWidth(currentRowHeight, currentRowAspectRatio);
             if (!mIsFixedHeight) {
@@ -201,5 +221,9 @@ public class GreedoLayoutSizeCalculator {
 
     private int calculateHeight(int itemWidth, double aspectRatio) {
         return (int) Math.ceil(itemWidth / aspectRatio);
+    }
+
+    private boolean isLastListItem(int pos) {
+        return pos == (mItemsCount - 1);
     }
 }
