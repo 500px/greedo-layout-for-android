@@ -20,6 +20,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     // Position of the header, which is the same value as its row. They can be used interchangeably
     static final int HEADER_POSITION = 0;
 
+    // An invalid scroll position value
+    static final int INVALID_SCROLL_POSITION = -1;
+
     // TODO: Can we do away with this?
     private enum Direction { NONE, UP, DOWN }
 
@@ -43,6 +46,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
 
     // The size of the header view. This is calculated in {@code preFillGrid}.
     private Size mHeaderViewSize;
+
+    // Adapter position that the view will be scrolled to after layout passes
+    private int mPendingScrollPosition = INVALID_SCROLL_POSITION;
 
     private GreedoLayoutSizeCalculator mSizeCalculator;
 
@@ -245,6 +251,17 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         return pixelsFilled;
     }
 
+    @Override
+    public void onLayoutCompleted(RecyclerView.State state) {
+        super.onLayoutCompleted(state);
+
+        // Run pending scroll if there's any
+        if (mPendingScrollPosition != INVALID_SCROLL_POSITION) {
+            scrollToPosition(mPendingScrollPosition);
+            mPendingScrollPosition = INVALID_SCROLL_POSITION;
+        }
+    }
+
     private int getContentWidth() {
         return getWidth() - getPaddingLeft() - getPaddingRight();
     }
@@ -299,6 +316,13 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     public void scrollToPosition(int position) {
         if (position >= getItemCount()) {
             Log.w(TAG, String.format("Cannot scroll to %d, item count is %d", position, getItemCount()));
+            return;
+        }
+
+        // Scrolling can only be performed once the layout knows its own sizing
+        // so defer the scrolling request after the postLayout pass
+        if (mSizeCalculator.getContentWidth() <= 0) {
+            mPendingScrollPosition = position;
             return;
         }
 
