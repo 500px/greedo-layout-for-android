@@ -45,6 +45,10 @@ public class GreedoLayoutSizeCalculator {
         }
     }
 
+    public int getContentWidth() {
+        return mContentWidth;
+    }
+
     public void setMaxRowHeight(int maxRowHeight) {
         if (mMaxRowHeight != maxRowHeight) {
             mMaxRowHeight = maxRowHeight;
