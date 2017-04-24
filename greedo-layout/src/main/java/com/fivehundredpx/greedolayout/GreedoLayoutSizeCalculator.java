@@ -80,7 +80,7 @@ public class GreedoLayoutSizeCalculator {
 
     public int getRowForChildPosition(int position) {
         if (position >= mRowForChildPosition.size()) {
-            computeChildSizesUpToPosition(position);
+            computeChildSizesUpToPosition(position + 1);
         }
 
         return mRowForChildPosition.get(position);
