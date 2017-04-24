@@ -80,7 +80,7 @@ public class GreedoLayoutSizeCalculator {
 
     public int getRowForChildPosition(int position) {
         if (position >= mRowForChildPosition.size()) {
-            computeChildSizesUpToPosition(position + 1);
+            computeChildSizesUpToPosition(position);
         }
 
         return mRowForChildPosition.get(position);
@@ -119,7 +119,7 @@ public class GreedoLayoutSizeCalculator {
 
         int currentRowWidth = 0;
         int pos = firstUncomputedChildPosition;
-        while (pos < lastPosition || (mIsFixedHeight ? currentRowWidth <= mContentWidth : currentRowHeight > mMaxRowHeight)) {
+        while (pos <= lastPosition || (mIsFixedHeight ? currentRowWidth <= mContentWidth : currentRowHeight > mMaxRowHeight)) {
             double posAspectRatio = mSizeCalculatorDelegate.aspectRatioForIndex(pos);
             currentRowAspectRatio += posAspectRatio;
             itemAspectRatios.add(posAspectRatio);
