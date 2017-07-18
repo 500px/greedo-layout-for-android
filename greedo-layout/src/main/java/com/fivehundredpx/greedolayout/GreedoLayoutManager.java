@@ -50,6 +50,10 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     // Adapter position that the view will be scrolled to after layout passes
     private int mPendingScrollPosition = INVALID_SCROLL_POSITION;
 
+    // This allows Greedo to layout only a fixed number of rows, any views from further rows
+    // will remain detached and therefore hidden
+    private int mRowsLimit = -1;
+
     private GreedoLayoutSizeCalculator mSizeCalculator;
 
     public GreedoLayoutManager(SizeCalculatorDelegate sizeCalculatorDelegate) {
@@ -88,6 +92,16 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
 
     public boolean isFirstViewHeader() {
         return mIsFirstViewHeader;
+    }
+
+    /**
+     * Set this if you want a fixed amount of rows to be laid out. If the adapter has
+     * more items than fits these rows, they will remain hidden. Set to -1 to disable.
+     *
+     * @param rows the amount of rows to layout
+     */
+    public void setFixedNumberOfRows(int rows) {
+        mRowsLimit = rows;
     }
 
     // The initial call from the framework, received when we need to start laying out the initial
@@ -188,6 +202,8 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         int topOffset  = startTopOffset + mPendingScrollPositionOffset;
         int nextPosition = mFirstVisiblePosition;
 
+        int currentRow = 0;
+
         while (nextPosition >= 0 && nextPosition < state.getItemCount()) {
 
             boolean isViewCached = true;
@@ -205,6 +221,10 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
             // Overflow to next row if we don't fit
             Size viewSize = sizeForChildAtPosition(nextPosition);
             if ((leftOffset + viewSize.getWidth()) > getContentWidth()) {
+                // Break if the rows limit has been hit
+                if (currentRow + 1 == mRowsLimit) break;
+                currentRow++;
+
                 leftOffset = startLeftOffset;
                 Size previousViewSize = sizeForChildAtPosition(nextPosition - 1);
                 topOffset += previousViewSize.getHeight();
@@ -329,6 +349,7 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         mForceClearOffsets = true; // Ignore current scroll offset
         mFirstVisibleRow = rowForChildPosition(position);
         mFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
+
         requestLayout();
     }
 
