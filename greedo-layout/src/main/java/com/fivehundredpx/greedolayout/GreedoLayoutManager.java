@@ -236,7 +236,7 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
                 case DOWN: isAtEndOfContent = topOffset >= getContentHeight() + dy; break;
                 default:   isAtEndOfContent = topOffset >= getContentHeight();      break;
             }
-            if (isAtEndOfContent) break;
+            
 
             if (isViewCached) {
                 // Re-attach the cached view at its new index
@@ -254,6 +254,7 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
             leftOffset += viewSize.getWidth();
 
             nextPosition++;
+			if (isAtEndOfContent) break;
         }
 
         // Scrap and store views that were not re-attached (no longer visible).
