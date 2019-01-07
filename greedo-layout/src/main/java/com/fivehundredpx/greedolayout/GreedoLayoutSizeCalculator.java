@@ -124,10 +124,10 @@ public class GreedoLayoutSizeCalculator {
 
             // If the size calculator delegate supplies negative aspect ratio,
             // consider it as "span the entire row" view. It will force a line break
-            // and add the loading indicator to its own line
-            boolean isLoadingIndicator = false;
+            // and add the view to its own line
+            boolean isFullRowView = false;
             if (posAspectRatio < 0) {
-                isLoadingIndicator = true;
+                isFullRowView = true;
             } else{
                 currentRowAspectRatio += posAspectRatio;
                 itemAspectRatios.add(posAspectRatio);
@@ -139,14 +139,14 @@ public class GreedoLayoutSizeCalculator {
             }
 
             boolean isRowFull = mIsFixedHeight ? currentRowWidth > mContentWidth : currentRowHeight <= mMaxRowHeight;
-            if (isRowFull || isLoadingIndicator) {
+            if (isRowFull || isFullRowView) {
                 int rowChildCount = itemAspectRatios.size();
 
-                // If the current view is the loading indicator, the row is forced to wrap so that
-                // the loading indicator can take the entire row for itself, however the first
+                // If the current view is the full row view, the current row is forced to wrap so that
+                // the full row view can take the entire row for itself, however the first
                 // children on that row needs to be added to mFirstChildPositionForRow as well, otherwise
                 // the item decoration will not work
-                if (isLoadingIndicator) {
+                if (isFullRowView) {
                     mFirstChildPositionForRow.add(pos - rowChildCount);
                 }
 
@@ -173,7 +173,7 @@ public class GreedoLayoutSizeCalculator {
                     // size would be computed from that single photo - this could make the row huge
                     // because the aspect ratio of that single photo would be used. So this limits
                     // it to something reasonable
-                    if (isLoadingIndicator && !isRowFull) {
+                    if (isFullRowView && !isRowFull) {
                         currentRowHeight = (int) Math.ceil(mMaxRowHeight * 0.75);
                     }
                     int itemWidth = calculateWidth(currentRowHeight, itemAspectRatios.get(i)) - itemSlacks[i];
@@ -185,8 +185,8 @@ public class GreedoLayoutSizeCalculator {
                     availableSpace -= itemWidth;
                 }
 
-                // Now add a size for the loading indicator
-                if (isLoadingIndicator) {
+                // Now add a size for the full row view
+                if (isFullRowView) {
                     mSizeForChildAtPosition.add(new Size(mContentWidth, calculateHeight(mContentWidth, Math.abs(posAspectRatio))));
                     mRowForChildPosition.add(row++);
                 }
