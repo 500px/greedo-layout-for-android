@@ -121,8 +121,17 @@ public class GreedoLayoutSizeCalculator {
         int pos = firstUncomputedChildPosition;
         while (pos <= lastPosition || (mIsFixedHeight ? currentRowWidth <= mContentWidth : currentRowHeight > mMaxRowHeight)) {
             double posAspectRatio = mSizeCalculatorDelegate.aspectRatioForIndex(pos);
-            currentRowAspectRatio += posAspectRatio;
-            itemAspectRatios.add(posAspectRatio);
+
+            // If the size calculator delegate supplies negative aspect ratio,
+            // consider it as "span the entire row" view. It will force a line break
+            // and add the view to its own line
+            boolean isFullRowView = false;
+            if (posAspectRatio < 0) {
+                isFullRowView = true;
+            } else{
+                currentRowAspectRatio += posAspectRatio;
+                itemAspectRatios.add(posAspectRatio);
+            }
 
             currentRowWidth = calculateWidth(currentRowHeight, currentRowAspectRatio);
             if (!mIsFixedHeight) {
@@ -130,8 +139,17 @@ public class GreedoLayoutSizeCalculator {
             }
 
             boolean isRowFull = mIsFixedHeight ? currentRowWidth > mContentWidth : currentRowHeight <= mMaxRowHeight;
-            if (isRowFull) {
+            if (isRowFull || isFullRowView) {
                 int rowChildCount = itemAspectRatios.size();
+
+                // If the current view is the full row view, the current row is forced to wrap so that
+                // the full row view can take the entire row for itself, however the first
+                // children on that row needs to be added to mFirstChildPositionForRow as well, otherwise
+                // the item decoration will not work
+                if (isFullRowView) {
+                    mFirstChildPositionForRow.add(pos - rowChildCount);
+                }
+
                 mFirstChildPositionForRow.add(pos - rowChildCount + 1);
 
                 int[] itemSlacks = new int[rowChildCount];
@@ -151,6 +169,13 @@ public class GreedoLayoutSizeCalculator {
 
                 int availableSpace = mContentWidth;
                 for (int i = 0; i < rowChildCount; i++) {
+                    // If the previous row was force-wrapped and there was a single photo, the row
+                    // size would be computed from that single photo - this could make the row huge
+                    // because the aspect ratio of that single photo would be used. So this limits
+                    // it to something reasonable
+                    if (isFullRowView && !isRowFull) {
+                        currentRowHeight = (int) Math.ceil(mMaxRowHeight * 0.75);
+                    }
                     int itemWidth = calculateWidth(currentRowHeight, itemAspectRatios.get(i)) - itemSlacks[i];
                     itemWidth = Math.min(availableSpace, itemWidth);
 
@@ -158,6 +183,12 @@ public class GreedoLayoutSizeCalculator {
                     mRowForChildPosition.add(row);
 
                     availableSpace -= itemWidth;
+                }
+
+                // Now add a size for the full row view
+                if (isFullRowView) {
+                    mSizeForChildAtPosition.add(new Size(mContentWidth, calculateHeight(mContentWidth, Math.abs(posAspectRatio))));
+                    mRowForChildPosition.add(row++);
                 }
 
                 itemAspectRatios.clear();
