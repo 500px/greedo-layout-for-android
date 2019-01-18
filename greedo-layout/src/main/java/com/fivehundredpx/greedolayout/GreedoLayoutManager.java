@@ -1,5 +1,8 @@
 package com.fivehundredpx.greedolayout;
 
+import android.content.Context;
+import android.graphics.PointF;
+import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
@@ -351,6 +354,46 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         mFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
 
         requestLayout();
+    }
+
+    @Override
+    public void smoothScrollToPosition(RecyclerView recyclerView, final RecyclerView.State state, int position) {
+        if (position >= getItemCount()) {
+            Log.e(TAG, "Scroll position " + position + "is greater than the item count" + getItemCount());
+            return;
+        }
+
+        final Context context = recyclerView.getContext();
+        LinearSmoothScroller scroller = new LinearSmoothScroller(context) {
+
+            @Override protected int getVerticalSnapPreference() {
+                return LinearSmoothScroller.SNAP_TO_START;
+            }
+
+            @Override
+            public PointF computeScrollVectorForPosition(int targetPosition) {
+                final int targetRow = rowForChildPosition(targetPosition);
+                int scrollDirection = targetPosition < mFirstVisiblePosition ? -1 : 1;
+
+                int loopStartIndex = scrollDirection < 0 ? mFirstVisibleRow - 1 : targetRow -1;
+                int loopEndIndex = scrollDirection < 0 ? targetRow : mFirstVisibleRow;
+                float totalVerticalScroll = 0f;
+
+                // Loops through the rows between the first visible row and the target row
+                // starting from the biggest row count so that all the size computations would be done in one call.
+                for (int i = loopStartIndex; i >= loopEndIndex; i--) {
+                    int firstVisibleRowItem = firstChildPositionForRow(i);
+                    int rowHeight = sizeForChildAtPosition(firstVisibleRowItem).getHeight();
+
+                    totalVerticalScroll += rowHeight;
+                }
+
+                return new PointF(0, scrollDirection * totalVerticalScroll);
+            }
+        };
+
+        scroller.setTargetPosition(position);
+        startSmoothScroll(scroller);
     }
 
     /**
