@@ -1,8 +1,9 @@
 package com.fivehundredpx.greedolayout;
 
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by Julian Villella on 15-07-30.
