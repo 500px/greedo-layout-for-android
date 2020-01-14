@@ -2,9 +2,10 @@ package com.fivehundredpx.greedo_layout_sample;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
-import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorDelegate;
 import com.squareup.picasso.Picasso;
