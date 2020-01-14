@@ -376,6 +376,18 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     }
 
     @Override
+    public int computeVerticalScrollOffset(RecyclerView.State state) {
+        View topLeftView = getChildAt(0);
+        return topLeftView == null ? 0 : Math.abs(getDecoratedTop(topLeftView));
+    }
+
+    @Override
+    public int computeVerticalScrollRange(@NonNull RecyclerView.State state) {
+        View bottomRightView = getChildAt(getChildCount() - 1);
+        return bottomRightView == null ? 0 : getDecoratedBottom(bottomRightView);
+    }
+
+    @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
         if (getChildCount() == 0 || dy == 0) {
             return 0;
