@@ -1,10 +1,12 @@
 package com.fivehundredpx.greedolayout;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator.SizeCalculatorDelegate;
 
@@ -371,6 +373,18 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
     @Override
     public boolean canScrollVertically() {
         return true;
+    }
+
+    @Override
+    public int computeVerticalScrollOffset(RecyclerView.State state) {
+        View topLeftView = getChildAt(0);
+        return topLeftView == null ? 0 : Math.abs(getDecoratedTop(topLeftView));
+    }
+
+    @Override
+    public int computeVerticalScrollRange(@NonNull RecyclerView.State state) {
+        View bottomRightView = getChildAt(getChildCount() - 1);
+        return bottomRightView == null ? 0 : getDecoratedBottom(bottomRightView);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.fivehundredpx.greedo_layout_sample;
 
-import android.support.annotation.DrawableRes;
+import androidx.annotation.DrawableRes;
 
 /**
  * Created by Julian Villella on 16-02-24.
