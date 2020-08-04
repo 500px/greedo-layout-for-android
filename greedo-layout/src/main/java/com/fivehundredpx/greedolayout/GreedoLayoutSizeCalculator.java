@@ -161,6 +161,7 @@ public class GreedoLayoutSizeCalculator {
                                 itemAspectRatios.get(itemAspectRatios.size() - 1));
                         currentRowWidth -= lastItemWidth;
                         rowChildCount -= 1;
+                        --pos;
                         itemAspectRatios.remove(itemAspectRatios.size() - 1);
 
                         itemSlacks = distributeRowSlack(currentRowWidth, rowChildCount, itemAspectRatios);
