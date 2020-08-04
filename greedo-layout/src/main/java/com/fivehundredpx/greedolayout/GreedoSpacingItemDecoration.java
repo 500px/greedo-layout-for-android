@@ -50,7 +50,7 @@ public class GreedoSpacingItemDecoration extends RecyclerView.ItemDecoration {
         }
     }
 
-    private static boolean isTopChild(int position, GreedoLayoutManager layoutManager) {
+    protected static boolean isTopChild(int position, GreedoLayoutManager layoutManager) {
         boolean isFirstViewHeader = layoutManager.isFirstViewHeader();
         if (isFirstViewHeader && position == GreedoLayoutManager.HEADER_POSITION) {
             return true;
@@ -63,7 +63,7 @@ public class GreedoSpacingItemDecoration extends RecyclerView.ItemDecoration {
         return sizeCalculator.getRowForChildPosition(position) == 0;
     }
 
-    private static boolean isLeftChild(int position, GreedoLayoutManager layoutManager) {
+    protected static boolean isLeftChild(int position, GreedoLayoutManager layoutManager) {
         boolean isFirstViewHeader = layoutManager.isFirstViewHeader();
         if (isFirstViewHeader && position == GreedoLayoutManager.HEADER_POSITION) {
             return true;
