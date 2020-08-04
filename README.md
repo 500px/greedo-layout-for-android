@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.fivehundredpx:greedo-layout:1.4.0'
+	compile 'com.fivehundredpx:greedo-layout:1.5.0'
 }
 ```
 
