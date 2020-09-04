@@ -156,7 +156,7 @@ public class GreedoLayoutSizeCalculator {
                 if (mIsFixedHeight) {
                     itemSlacks = distributeRowSlack(currentRowWidth, rowChildCount, itemAspectRatios);
 
-                    if (!hasValidItemSlacks(itemSlacks, itemAspectRatios)) {
+                    if (rowChildCount > 1 && !hasValidItemSlacks(itemSlacks, itemAspectRatios)) {
                         int lastItemWidth = calculateWidth(currentRowHeight,
                                 itemAspectRatios.get(itemAspectRatios.size() - 1));
                         currentRowWidth -= lastItemWidth;
