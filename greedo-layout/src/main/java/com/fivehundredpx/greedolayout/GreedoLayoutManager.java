@@ -172,6 +172,12 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
                         double previousTopRowHeight = sizeForChildAtPosition(
                                 mFirstVisiblePosition - 1).getHeight();
                         startTopOffset -= previousTopRowHeight;
+                        while (startTopOffset >= -dy && mFirstVisibleRow !=  0){
+                            mFirstVisibleRow--;
+                            newFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
+                            startTopOffset -= sizeForChildAtPosition(newFirstVisiblePosition).getHeight();
+
+                        }
                         break;
                     case DOWN: // row may have gone off screen
                         double topRowHeight = sizeForChildAtPosition(
