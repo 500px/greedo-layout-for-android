@@ -1,19 +1,19 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 repositories {
     google()
 }
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 32
+    buildToolsVersion '32.0.0'
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 28
+        targetSdkVersion 32
         versionCode 1
-        versionName "1.5.1"
+        versionName '1.5.2'
     }
     buildTypes {
         release {
@@ -29,12 +29,19 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
 }
 
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.groupId = 'com.fivehundredpx'
-        pom.artifactId = 'greedo-layout'
-        pom.version = android.defaultConfig.versionName
-        repository(url: "file:./releases/")
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.fivehundredpx'
+            artifactId = 'greedo-layout'
+            version = android.defaultConfig.versionName
+            artifact("$buildDir/outputs/aar/greedo-layout-release.aar")
+        }
+    }
+    repositories {
+        maven {
+            name = 'lopo'
+            url = "${project.projectDir}/../releases"
+        }
     }
 }
-
