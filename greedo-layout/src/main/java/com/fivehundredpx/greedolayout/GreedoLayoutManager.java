@@ -194,6 +194,16 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
                 detachView(cachedView);
             }
         }
+        //Check if it is scrolled too fast and if so find the row that should be displayed first
+        //If startTopOffset is greater than zero than that means we are trying to fill the screen
+        //somewhere below the top part.
+        if (direction == Direction.UP) {
+            while (startTopOffset >= -dy / 2 && mFirstVisibleRow != 0) {
+                mFirstVisibleRow--;
+                newFirstVisiblePosition = firstChildPositionForRow(mFirstVisibleRow);
+                startTopOffset -= sizeForChildAtPosition(newFirstVisiblePosition).getHeight();
+            }
+        }
 
         mFirstVisiblePosition = newFirstVisiblePosition;
 
@@ -392,8 +402,9 @@ public class GreedoLayoutManager extends RecyclerView.LayoutManager {
         if (getChildCount() == 0 || dy == 0) {
             return 0;
         }
-
+        //Take top measurements from the top-left child
         final View topLeftView = getChildAt(0);
+        //Take bottom measurements from the bottom-right child.
         final View bottomRightView = getChildAt(getChildCount() - 1);
         int pixelsFilled = getContentHeight();
         // TODO: Split into methods, or a switch case?
